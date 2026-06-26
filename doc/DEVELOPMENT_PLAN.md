@@ -27,7 +27,8 @@
 - [x] Supabase Auth 연동 — `app/login`(폼+서버액션 login/signup/signout). 이메일+비번만(소셜·전화 제외)
 - [x] 보호 라우트 — `app/page.tsx` 미로그인 시 `/login` 리다이렉트
 - [x] `profiles` 연동 — 가입 시 자동생성 트리거 라이브 검증(닉네임·locale, 삭제 cascade)
-- [ ] (대시보드) 이메일 확인 ON/OFF 결정 — 개발 중 OFF 권장 · Site URL 등록 ← 사용자
+- [x] (대시보드) Site URL 등록 + 이메일 확인 OFF(개발) 완료
+- [x] **브라우저 E2E 수동검증** — 회원가입 → 로그아웃 → 로그인 동작 확인
 - [ ] (후속) 소셜 로그인(카카오→구글/애플)은 앱 출시 단계에서 비파괴적 추가
 
 ---
