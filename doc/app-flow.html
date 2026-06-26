@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TravelDiary — 앱 흐름 · 데이터 매핑</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+  :root {
+    --bg: #0f1115; --card: #171a21; --line: #262b36; --text: #e6e9ef;
+    --muted: #9aa3b2; --accent: #6ea8fe; --w: #f0a35e; --r: #74d39a; --warn: #ffd166;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", sans-serif;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 32px 24px 80px; }
+  header h1 { font-size: 26px; margin: 0 0 6px; }
+  header p { color: var(--muted); margin: 0 0 24px; }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+  .legend b { color: var(--text); }
+  .pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+  .pill.r { background: rgba(116,211,154,.15); color: var(--r); }
+  .pill.w { background: rgba(240,163,94,.15); color: var(--w); }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px 24px; margin: 20px 0; }
+  section h2 { font-size: 18px; margin: 0 0 14px; }
+  .mermaid { background: #0b0d11; border-radius: 10px; padding: 16px; text-align: center; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+  td code { background: #0b0d11; padding: 1px 6px; border-radius: 5px; font-size: 12.5px; color: var(--accent); }
+  .tbl { color: var(--text); font-weight: 600; }
+  .num { color: var(--muted); width: 30px; }
+  .decision { border-left: 3px solid var(--warn); padding: 12px 16px; background: rgba(255,209,102,.06); border-radius: 0 10px 10px 0; margin: 12px 0; }
+  .decision.open { border-color: var(--warn); }
+  .decision.set { border-color: var(--r); background: rgba(116,211,154,.06); }
+  .decision h3 { margin: 0 0 6px; font-size: 15px; }
+  .decision .tag { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-left: 8px; }
+  .tag.open { background: rgba(255,209,102,.2); color: var(--warn); }
+  .tag.set { background: rgba(116,211,154,.2); color: var(--r); }
+  .decision p { margin: 6px 0 0; color: var(--muted); font-size: 13.5px; }
+  .opts { margin: 8px 0 0; padding-left: 18px; font-size: 13.5px; color: var(--muted); }
+  .opts li { margin: 3px 0; }
+  .opts b { color: var(--text); }
+  footer { color: var(--muted); font-size: 12.5px; margin-top: 28px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>TravelDiary — 앱 흐름 · 데이터 매핑</h1>
+    <p>기획서 §3 핵심 흐름을 단계별 CRUD로 매핑해 스키마를 검증한다. (스키마: <code>supabase/migrations/20260626000000_init.sql</code>)</p>
+  </header>
+
+  <div class="legend">
+    <span><span class="pill r">R</span> 읽기 &nbsp; <span class="pill w">W</span> 쓰기</span>
+    <span><b>테이블</b> profiles · places · records · diaries · reviews · review_likes</span>
+  </div>
+
+  <section>
+    <h2>흐름도</h2>
+    <div class="mermaid">
+flowchart TD
+  A["로그인 / 회원가입"] --> B["사진 업로드 (1~N장)"]
+  B --> C["EXIF 좌표·시각 추출<br/>(압축 전 먼저)"]
+  C --> D["records 생성<br/>captured_at · lat · lng"]
+  D --> E["Storage 업로드<br/>→ photo_url"]
+  E --> F["TourAPI 좌표 조회"]
+  F --> G{"장소 확정?"}
+  G -- "자동제안 OK" --> H["places 캐시<br/>+ records.place_id"]
+  G -- "실패" --> I["한글 키워드 검색<br/>searchKeyword2"]
+  I --> H
+  H --> J["한 줄 메모 + AI 질문/답변<br/>records.memo · answers"]
+  J --> K["AI 감정·상황 정리<br/>records.ai_summary · ai_tags"]
+  K --> L["타임라인 묶기<br/>captured_at 정렬"]
+  L --> M["일기 작성 · 문체 선택<br/>diaries + records.diary_id"]
+  M --> N["일기 비공개 보관<br/>(RLS 본인만)"]
+  H --> O["장소 후기 공개<br/>reviews + review_likes"]
+  N --> P["리마인더 푸시 / 이메일"]
+
+  classDef priv fill:#1d2733,stroke:#74d39a,color:#e6e9ef;
+  classDef pub fill:#2a2418,stroke:#f0a35e,color:#e6e9ef;
+  class N,M priv;
+  class O pub;
+    </div>
+  </section>
+
+  <section>
+    <h2>단계별 CRUD 매핑</h2>
+    <table>
+      <thead><tr><th class="num">#</th><th>단계</th><th>동작</th><th>테이블 · 컬럼</th></tr></thead>
+      <tbody>
+        <tr><td class="num">1</td><td>회원가입/로그인</td><td>트리거로 프로필 생성</td><td><span class="tbl">profiles</span> <span class="pill w">W</span> <code>id</code> <code>nickname</code></td></tr>
+        <tr><td class="num">2</td><td>사진 업로드</td><td>EXIF 추출(클라) → 기록·사진 생성</td><td><span class="tbl">records</span> <span class="pill w">W</span> <code>captured_at</code>(대표) · <span class="tbl">photos</span> <span class="pill w">W</span> <code>captured_at</code> <code>lat</code> <code>lng</code> <code>media_type</code> <code>sort_order</code></td></tr>
+        <tr><td class="num">3</td><td>사진 저장</td><td>Storage 업로드 → URL 기록</td><td>Storage <span class="pill w">W</span> · <span class="tbl">photos</span> <span class="pill w">W</span> <code>url</code></td></tr>
+        <tr><td class="num">4</td><td>장소 제안</td><td>좌표로 TourAPI 조회 → 캐시</td><td><span class="tbl">places</span> <span class="pill r">R</span><span class="pill w">W</span>(서버) · <span class="tbl">records</span> <span class="pill w">W</span> <code>place_id</code></td></tr>
+        <tr><td class="num">4b</td><td>장소 확정 실패</td><td>한글 키워드 검색 → 확정</td><td><span class="tbl">places</span> <span class="pill r">R</span><span class="pill w">W</span> · <span class="tbl">records</span> <span class="pill w">W</span> <code>place_id</code></td></tr>
+        <tr><td class="num">5</td><td>메모·질문</td><td>메모 입력 + AI 질문/답변</td><td><span class="tbl">records</span> <span class="pill w">W</span> <code>memo</code> <code>answers</code></td></tr>
+        <tr><td class="num">6</td><td>AI 정리</td><td>메모+답변 → 정리</td><td><span class="tbl">records</span> <span class="pill w">W</span> <code>ai_summary</code> <code>ai_tags</code></td></tr>
+        <tr><td class="num">7</td><td>타임라인</td><td>captured_at 정렬로 묶기</td><td><span class="tbl">records</span> <span class="pill r">R</span> <code>captured_at</code> <code>place_id</code></td></tr>
+        <tr><td class="num">8</td><td>일기 작성</td><td>문체 선택 → 본문 생성·저장</td><td><span class="tbl">diaries</span> <span class="pill w">W</span> <code>tone</code> <code>body</code> <code>diary_date</code> · <span class="tbl">records</span> <span class="pill w">W</span> <code>diary_id</code></td></tr>
+        <tr><td class="num">9</td><td>일기 보관</td><td>늘 비공개</td><td><span class="tbl">diaries</span> <span class="pill r">R</span> (RLS 본인만)</td></tr>
+        <tr><td class="num">10</td><td>후기 공개</td><td>장소별 후기·좋아요</td><td><span class="tbl">reviews</span> <span class="pill r">R</span><span class="pill w">W</span> · <span class="tbl">review_likes</span> <span class="pill r">R</span><span class="pill w">W</span></td></tr>
+        <tr><td class="num">11</td><td>리마인더</td><td>"어제 다녀온 OO" 알림</td><td><span class="tbl">records</span> <span class="pill r">R</span>(어제) · <i>(발송이력 테이블?)</i></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>매핑으로 드러난 결정거리</h2>
+
+    <div class="decision set">
+      <h3>① 장소당 사진 N장 처리<span class="tag set">확정: A안</span></h3>
+      <p><b>별도 <code>photos</code> 테이블 (records 1:N)</b> 채택. 사진마다 <code>url</code>·EXIF(<code>captured_at</code>,<code>lat</code>,<code>lng</code>)·<code>media_type</code>·<code>sort_order</code> 보관, 메모·질문·AI정리는 <code>records</code>(장소)에 한 번. RLS 본인만. 마이그레이션 반영 완료.</p>
+    </div>
+
+    <div class="decision set">
+      <h3>② answers 형태<span class="tag set">기본값 적용 예정</span></h3>
+      <p><code>answers</code>를 <code>[{questionId, question, text}]</code>로 저장 — 일기 생성 시 "무엇을 물었는지" 질문 텍스트까지 보존.</p>
+    </div>
+
+    <div class="decision set">
+      <h3>③ 리마인더 발송이력<span class="tag set">후순위</span></h3>
+      <p>MVP는 <code>records</code>(어제 날짜)에서 계산. 중복 발송 방지용 <code>reminders</code> 테이블은 Phase 7에서 필요 시 추가.</p>
+    </div>
+  </section>
+
+  <footer>TravelDiary · 흐름→데이터 매핑 (스키마 검증용) · 같은 내용 마크다운: doc/앱_플로우_데이터매핑.md</footer>
+</div>
+
+<script>
+  mermaid.initialize({ startOnLoad: true, theme: "dark", flowchart: { curve: "basis" } });
+</script>
+</body>
+</html>
