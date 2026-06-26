@@ -21,16 +21,18 @@
 
 ---
 
-## Phase 1 — 인증 (이메일+비밀번호) 🔄
+## Phase 1 — 인증 (이메일+비밀번호) ✅
 
-- [x] 세션 갱신 미들웨어 (`middleware.ts` + `lib/supabase/middleware.ts`) — 인증 전제
-- [ ] Supabase Auth 연동 (회원가입 / 로그인 / 로그아웃 / 세션)
-- [ ] 보호 라우트 (미로그인 시 로그인 페이지로)
-- [ ] `users` 프로필 연동 (Auth user 기준)
+- [x] 세션 갱신 미들웨어 (`middleware.ts` + `lib/supabase/middleware.ts`)
+- [x] Supabase Auth 연동 — `app/login`(폼+서버액션 login/signup/signout). 이메일+비번만(소셜·전화 제외)
+- [x] 보호 라우트 — `app/page.tsx` 미로그인 시 `/login` 리다이렉트
+- [x] `profiles` 연동 — 가입 시 자동생성 트리거 라이브 검증(닉네임·locale, 삭제 cascade)
+- [ ] (대시보드) 이메일 확인 ON/OFF 결정 — 개발 중 OFF 권장 · Site URL 등록 ← 사용자
+- [ ] (후속) 소셜 로그인(카카오→구글/애플)은 앱 출시 단계에서 비파괴적 추가
 
 ---
 
-## Phase 2 — DB 스키마 + RLS 🔄 (SQL 작성 완료, 원격 적용 대기)
+## Phase 2 — DB 스키마 + RLS ✅ (적용·검증 완료)
 
 - [x] 마이그레이션 SQL 작성 — `supabase/migrations/20260626000000_init.sql` (Supabase CLI 구조 `supabase init` 완료)
 - [x] 테이블 정의: `profiles`(auth 1:1), `places`, `diaries`, `records`, **`photos`(records 1:N)**, `reviews`, `review_likes`
@@ -39,8 +41,9 @@
 - [x] `diaries`↔`reviews` 물리 분리 〔§5-2〕 · `records.diary_id` 평면 FK
 - [x] **RLS 정책 전 테이블 작성** (CLAUDE.md §6) — `records`/`diaries`/`photos` 본인만, `reviews`/`places`/`profiles` 공개읽기, 쓰기 본인/서버
 - [x] 가입 시 `profiles` 자동 생성 트리거 + `updated_at` 트리거
-- [ ] **원격 적용** — `supabase link` + `supabase db push` (또는 SQL Editor 붙여넣기) ← 사용자 실행 필요
-- [ ] 적용 후 검증 — 회원가입 시 profile 생성·RLS 격리 확인
+- [x] **원격 적용** — `supabase link` + `supabase db push` 완료 (CLI 워크플로)
+- [x] 적용 후 검증 — 7테이블 존재 ✅, `places` 서버 쓰기(secret, RLS 우회) ✅, RLS 격리(미인증 records 차단·places 쓰기 401) ✅
+- [ ] 회원가입 시 profile 자동생성 트리거 — Phase 1 인증 붙일 때 실사용 검증
 - [ ] (Phase 3 준비) 사진용 Storage 버킷 생성 — 다음 단계
 
 ---
