@@ -17,13 +17,13 @@
 - [x] Supabase 클라이언트 유틸 — `client`(publishable) / `server`(SSR·async cookies) / `admin`(secret 서버 전용) · **신키 체계**
 - [ ] Capacitor 설정은 구조만 (`capacitor.config`) — 실제 래핑은 웹 완성 후 (후순위)
 
-> 추가 완료: `lib/tourapi/client.ts`(KorService2 규칙 반영 스켈레톤), `lib/ai/{types,mock}.ts`(AI 경계 + mock), 세션 갱신 `middleware.ts`(+`lib/supabase/middleware.ts`) — Phase 1·5 일부 선행.
+> 추가 완료: `lib/tourapi/client.ts`(KorService2 규칙 반영 스켈레톤), `lib/ai/{types,mock}.ts`(AI 경계 + mock), 세션 갱신 `proxy.ts`(+`lib/supabase/proxy.ts`) — Phase 1·5 일부 선행.
 
 ---
 
 ## Phase 1 — 인증 (이메일+비밀번호) ✅
 
-- [x] 세션 갱신 미들웨어 (`middleware.ts` + `lib/supabase/middleware.ts`)
+- [x] 세션 갱신 proxy (`proxy.ts` + `lib/supabase/proxy.ts`, Next 16 규칙)
 - [x] Supabase Auth 연동 — `app/login`(폼+서버액션 login/signup/signout). 이메일+비번만(소셜·전화 제외)
 - [x] 보호 라우트 — `app/page.tsx` 미로그인 시 `/login` 리다이렉트
 - [x] `profiles` 연동 — 가입 시 자동생성 트리거 라이브 검증(닉네임·locale, 삭제 cascade)

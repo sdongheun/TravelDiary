@@ -70,7 +70,7 @@
 - ⏸ **날씨 API** — 보류(Phase 3 선택적 자동 채움 시 추가)
 
 > Supabase 키 네이밍(중요): 이 프로젝트는 **신키 체계**다. 코드/ENV는 `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`(구 anon), `SUPABASE_SECRET_KEY`(구 service_role)를 쓴다. `ANON_KEY`/`SERVICE_ROLE_KEY` 명칭 쓰지 말 것.
-> 세션 갱신용 `middleware.ts`(루트) + `lib/supabase/middleware.ts` 구성됨 — 인증의 전제.
+> 세션 갱신용 `proxy.ts`(루트, Next 16에서 middleware→proxy로 변경) + `lib/supabase/proxy.ts` 구성됨 — 인증의 전제.
 
 키 저장: 모두 `.env.local`. git 커밋 금지(`.gitignore`가 `.env*` 제외 확인됨).
 - **클라이언트 노출 허용:** Supabase URL, Supabase **publishable key**, **카카오맵 JS 키**(`NEXT_PUBLIC_` 접두사 — JS 키는 반드시 카카오 콘솔 [플랫폼>Web]에 도메인 등록해 보호)
