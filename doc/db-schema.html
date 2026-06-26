@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TravelDiary — DB Schema Reference</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+  :root{
+    --bg:#0d1017; --panel:#141821; --panel2:#11151d; --line:#222936; --line2:#2c3442;
+    --text:#dde3ec; --muted:#8b94a4; --faint:#5c6575;
+    --accent:#6ea8fe; --key:#c792ea; --fk:#6ea8fe; --uq:#e5c07b; --green:#74d39a; --orange:#e09b5a;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Inter","Pretendard","Apple SD Gothic Neo",sans-serif;
+    font-size:14px;line-height:1.6;}
+  .wrap{max-width:1080px;margin:0 auto;padding:34px 24px 90px;}
+
+  header{border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:8px;}
+  header h1{font-size:22px;font-weight:650;margin:0 0 6px;letter-spacing:-.01em;}
+  header .meta{color:var(--muted);font-size:13px;}
+  header .meta code{font-family:var(--mono);color:var(--accent);background:var(--panel);padding:1px 6px;border-radius:4px;}
+
+  nav{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0;}
+  nav a{font-size:12.5px;color:var(--muted);text-decoration:none;border:1px solid var(--line);
+    padding:4px 10px;border-radius:6px;}
+  nav a:hover{color:var(--text);border-color:var(--line2);}
+
+  section{margin-top:34px;}
+  h2{font-size:15px;font-weight:650;margin:0 0 4px;padding-bottom:8px;border-bottom:1px solid var(--line);
+    text-transform:uppercase;letter-spacing:.06em;color:var(--text);}
+  h2 .n{color:var(--faint);margin-right:8px;font-variant-numeric:tabular-nums;}
+  .desc{color:var(--muted);font-size:13px;margin:10px 0 14px;}
+
+  .mermaid{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:18px;text-align:center;margin-top:14px;}
+
+  /* convention list */
+  ul.conv{list-style:none;margin:12px 0 0;padding:0;}
+  ul.conv li{padding:7px 0;border-top:1px solid var(--line);color:var(--muted);font-size:13px;}
+  ul.conv li:first-child{border-top:0;}
+  ul.conv b{color:var(--text);font-weight:600;}
+  code.i{font-family:var(--mono);font-size:12px;background:var(--panel);color:#cbd3e1;padding:1px 5px;border-radius:4px;}
+
+  /* table block */
+  .t{margin-top:18px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel);}
+  .t>.hd{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--panel2);}
+  .t>.hd .nm{font-family:var(--mono);font-weight:650;font-size:14.5px;}
+  .t>.hd .scope{font-size:10.5px;font-weight:700;letter-spacing:.04em;padding:2px 8px;border-radius:5px;text-transform:uppercase;}
+  .scope.priv{background:rgba(116,211,154,.13);color:var(--green);border:1px solid rgba(116,211,154,.25);}
+  .scope.pub{background:rgba(224,155,90,.13);color:var(--orange);border:1px solid rgba(224,155,90,.25);}
+  .scope.master{background:rgba(110,168,254,.13);color:var(--accent);border:1px solid rgba(110,168,254,.25);}
+  .t>.hd .note{color:var(--muted);font-size:12.5px;margin-left:auto;}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  thead th{text-align:left;padding:8px 16px;color:var(--faint);font-size:11px;font-weight:600;
+    text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line);background:var(--panel2);}
+  tbody td{padding:7px 16px;border-top:1px solid var(--line);vertical-align:top;}
+  td.col{font-family:var(--mono);color:var(--text);white-space:nowrap;}
+  td.typ{font-family:var(--mono);color:var(--muted);font-size:12px;white-space:nowrap;}
+  td.cons{font-family:var(--mono);font-size:11.5px;}
+  td.nt{color:var(--muted);font-size:12.5px;}
+  .k{display:inline-block;font-family:var(--mono);font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;margin-right:3px;}
+  .k.pk{background:rgba(199,146,234,.16);color:var(--key);}
+  .k.fk{background:rgba(110,168,254,.14);color:var(--fk);}
+  .k.uq{background:rgba(229,192,123,.14);color:var(--uq);}
+  .k.nn{background:rgba(139,148,164,.14);color:var(--muted);}
+  .meta-row{padding:9px 16px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);background:var(--panel2);}
+  .meta-row b{color:var(--text);font-weight:600;}
+  .meta-row code{font-family:var(--mono);font-size:11.5px;color:#cbd3e1;}
+
+  /* rls / generic data table */
+  table.data{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:14px;}
+  table.data td{font-size:12.5px;}
+  table.data td.m{font-family:var(--mono);}
+  pre{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow:auto;
+    font-family:var(--mono);font-size:12.5px;color:#cbd3e1;line-height:1.55;}
+  pre .c{color:var(--faint);}
+
+  footer{margin-top:46px;padding-top:16px;border-top:1px solid var(--line);color:var(--faint);font-size:12px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>TravelDiary — DB Schema Reference</h1>
+    <div class="meta">PostgreSQL (Supabase) · RLS enabled · source: <code>supabase/migrations/20260626000000_init.sql</code></div>
+    <nav>
+      <a href="#erd">ERD</a>
+      <a href="#conv">Conventions</a>
+      <a href="#tables">Tables</a>
+      <a href="#rls">RLS</a>
+      <a href="#trig">Triggers</a>
+      <a href="#notes">Design notes</a>
+    </nav>
+  </header>
+
+  <section id="erd">
+    <h2><span class="n">01</span>Entity Relationship</h2>
+    <div class="desc">crow's-foot 표기. <code class="i">auth.users</code>는 Supabase 관리 테이블(외부).</div>
+    <div class="mermaid">
+erDiagram
+  auth_users ||--|| profiles : "1:1"
+  auth_users ||--o{ records : ""
+  auth_users ||--o{ diaries : ""
+  auth_users ||--o{ reviews : ""
+  auth_users ||--o{ review_likes : ""
+  places ||--o{ records : "place_id"
+  places ||--o{ reviews : "place_id"
+  diaries ||--o{ records : "diary_id"
+  records ||--o{ photos : "1:N"
+  reviews ||--o{ review_likes : "1:N"
+
+  auth_users {
+    uuid id PK
+  }
+  profiles {
+    uuid id PK "FK auth.users"
+    text nickname
+    text locale
+  }
+  places {
+    uuid id PK
+    text content_id UK
+    text title
+    double lat
+    double lng
+    text overview
+    jsonb raw
+  }
+  records {
+    uuid id PK
+    uuid user_id FK
+    uuid place_id FK
+    uuid diary_id FK
+    timestamptz captured_at
+    text memo
+    jsonb answers
+    text ai_summary
+  }
+  photos {
+    uuid id PK
+    uuid record_id FK
+    uuid user_id FK
+    text url
+    timestamptz captured_at
+    int sort_order
+  }
+  diaries {
+    uuid id PK
+    uuid user_id FK
+    text tone
+    text body
+    date diary_date
+  }
+  reviews {
+    uuid id PK
+    uuid user_id FK
+    uuid place_id FK
+    text content
+    int rating
+  }
+  review_likes {
+    uuid review_id PK "FK reviews"
+    uuid user_id PK "FK auth.users"
+  }
+    </div>
+  </section>
+
+  <section id="conv">
+    <h2><span class="n">02</span>Conventions</h2>
+    <ul class="conv">
+      <li><b>PK</b>: 전 테이블 <code class="i">uuid DEFAULT gen_random_uuid()</code> — 단, <code class="i">profiles.id</code>는 <code class="i">auth.users.id</code> 재사용, <code class="i">review_likes</code>는 복합 PK.</li>
+      <li><b>Timestamps</b>: 모든 테이블 <code class="i">created_at / updated_at timestamptz NOT NULL DEFAULT now()</code> + <code class="i">set_updated_at()</code> BEFORE UPDATE 트리거.</li>
+      <li><b>Scope</b>: <span class="k" style="background:rgba(116,211,154,.13);color:var(--green)">PRIVATE</span> 본인만 · <span class="k" style="background:rgba(224,155,90,.13);color:var(--orange)">PUBLIC</span> 공개읽기 · <span class="k" style="background:rgba(110,168,254,.13);color:var(--accent)">MASTER</span> 공용 캐시. → RLS로 강제.</li>
+      <li><b>FK on delete</b>: 소유 관계는 <code class="i">CASCADE</code>, 참조 관계(place/diary)는 <code class="i">SET NULL</code>로 기록 보존.</li>
+      <li><b>Legend</b>: <span class="k pk">PK</span> primary <span class="k fk">FK</span> foreign <span class="k uq">UQ</span> unique <span class="k nn">NN</span> not null</li>
+    </ul>
+  </section>
+
+  <section id="tables">
+    <h2><span class="n">03</span>Tables</h2>
+
+    <!-- profiles -->
+    <div class="t">
+      <div class="hd"><span class="nm">profiles</span><span class="scope priv">private</span><span class="note">auth.users 1:1 · 가입 트리거 자동 생성</span></div>
+      <table>
+        <thead><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Note</th></tr></thead>
+        <tbody>
+          <tr><td class="col">id</td><td class="typ">uuid</td><td class="cons"><span class="k pk">PK</span><span class="k fk">FK</span></td><td class="nt">→ auth.users(id) ON DELETE CASCADE</td></tr>
+          <tr><td class="col">nickname</td><td class="typ">text</td><td class="cons">—</td><td class="nt">기본값: 이메일 local-part</td></tr>
+          <tr><td class="col">locale</td><td class="typ">text</td><td class="cons"><span class="k nn">NN</span></td><td class="nt">DEFAULT 'ko'</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- places -->
+    <div class="t">
+      <div class="hd"><span class="nm">places</span><span class="scope master">master</span><span class="note">TourAPI 장소 캐시</span></div>
+      <table>
+        <thead><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Note</th></tr></thead>
+        <tbody>
+          <tr><td class="col">id</td><td class="typ">uuid</td><td class="cons"><span class="k pk">PK</span></td><td class="nt"></td></tr>
+          <tr><td class="col">content_id</td><td class="typ">text</td><td class="cons"><span class="k uq">UQ</span><span class="k nn">NN</span></td><td class="nt">TourAPI contentid</td></tr>
+          <tr><td class="col">content_type_id</td><td class="typ">text</td><td class="cons">—</td><td class="nt">12=관광지 … 39=음식점</td></tr>
+          <tr><td class="col">title</td><td class="typ">text</td><td class="cons"><span class="k nn">NN</span></td><td class="nt"></td></tr>
+          <tr><td class="col">addr1, lat, lng</td><td class="typ">text, double, double</td><td class="cons">—</td><td class="nt">lat=mapY, lng=mapX</td></tr>
+          <tr><td class="col">overview, first_image</td><td class="typ">text</td><td class="cons">—</td><td class="nt">detailCommon2 / 대표이미지</td></tr>
+          <tr><td class="col">cat1, cat2, cat3, raw</td><td class="typ">text, jsonb</td><td class="cons">—</td><td class="nt">raw=원본 응답</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- diaries -->
+    <div class="t">
+      <div class="hd"><span class="nm">diaries</span><span class="scope priv">private</span><span class="note">records 묶음 · 늘 비공개</span></div>
+      <table>
+        <thead><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Note</th></tr></thead>
+        <tbody>
+          <tr><td class="col">id</td><td class="typ">uuid</td><td class="cons"><span class="k pk">PK</span></td><td class="nt"></td></tr>
+          <tr><td class="col">user_id</td><td class="typ">uuid</td><td class="cons"><span class="k fk">FK</span><span class="k nn">NN</span></td><td class="nt">→ auth.users ON DELETE CASCADE</td></tr>
+          <tr><td class="col">tone</td><td class="typ">text</td><td class="cons">CHECK</td><td class="nt">plain | emotional | humor</td></tr>
+          <tr><td class="col">title, body, diary_date</td><td class="typ">text, text, date</td><td class="cons">—</td><td class="nt">body=AI 보조 본문</td></tr>
+        </tbody>
+      </table>
+      <div class="meta-row"><b>Index</b> <code>(user_id)</code></div>
+    </div>
+
+    <!-- records -->
+    <div class="t">
+      <div class="hd"><span class="nm">records</span><span class="scope priv">private</span><span class="note">코스(장소) 단위 · core</span></div>
+      <table>
+        <thead><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Note</th></tr></thead>
+        <tbody>
+          <tr><td class="col">id</td><td class="typ">uuid</td><td class="cons"><span class="k pk">PK</span></td><td class="nt"></td></tr>
+          <tr><td class="col">user_id</td><td class="typ">uuid</td><td class="cons"><span class="k fk">FK</span><span class="k nn">NN</span></td><td class="nt">→ auth.users ON DELETE CASCADE</td></tr>
+          <tr><td class="col">place_id</td><td class="typ">uuid</td><td class="cons"><span class="k fk">FK</span></td><td class="nt">→ places ON DELETE SET NULL</td></tr>
+          <tr><td class="col">diary_id</td><td class="typ">uuid</td><td class="cons"><span class="k fk">FK</span></td><td class="nt">→ diaries ON DELETE SET NULL</td></tr>
+          <tr><td class="col">captured_at</td><td class="typ">timestamptz</td><td class="cons">—</td><td class="nt">대표 시각 · 타임라인 정렬키</td></tr>
+          <tr><td class="col">answers</td><td class="typ">jsonb</td><td class="cons"><span class="k nn">NN</span></td><td class="nt">DEFAULT '[]' · [{questionId,question,text}]</td></tr>
+          <tr><td class="col">memo, ai_summary</td><td class="typ">text</td><td class="cons">—</td><td class="nt"></td></tr>
+          <tr><td class="col">ai_tags</td><td class="typ">text[]</td><td class="cons">—</td><td class="nt"></td></tr>
+          <tr><td class="col">manual_location, weather</td><td class="typ">text</td><td class="cons">—</td><td class="nt">EXIF fallback / 날씨</td></tr>
+        </tbody>
+      </table>
+      <div class="meta-row"><b>Index</b> <code>(user_id)</code> <code>(diary_id)</code> <code>(place_id)</code> <code>(captured_at)</code></div>
+    </div>
+
+    <!-- photos -->
+    <div class="t">
+      <div class="hd"><span class="nm">photos</span><span class="scope priv">private</span><span class="note">records 1:N · 사진별 EXIF</span></div>
+      <table>
+        <thead><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Note</th></tr></thead>
+        <tbody>
+          <tr><td class="col">id</td><td class="typ">uuid</td><td class="cons"><span class="k pk">PK</span></td><td class="nt"></td></tr>
+          <tr><td class="col">record_id</td><td class="typ">uuid</td><td class="cons"><span class="k fk">FK</span><span class="k nn">NN</span></td><td class="nt">→ records ON DELETE CASCADE</td></tr>
+          <tr><td class="col">user_id</td><td class="typ">uuid</td><td class="cons"><span class="k fk">FK</span><span class="k nn">NN</span></td><td class="nt">→ auth.users · RLS 단순화용 비정규화</td></tr>
+          <tr><td class="col">url</td><td class="typ">text</td><td class="cons"><span class="k nn">NN</span></td><td class="nt">Supabase Storage</td></tr>
+          <tr><td class="col">captured_at, lat, lng</td><td class="typ">timestamptz, double, double</td><td class="cons">—</td><td class="nt">사진별 EXIF</td></tr>
+          <tr><td class="col">media_type</td><td class="typ">text</td><td class="cons"><span class="k nn">NN</span></td><td class="nt">DEFAULT 'photo' · 영상 확장 예약</td></tr>
+          <tr><td class="col">sort_order</td><td class="typ">int</td><td class="cons"><span class="k nn">NN</span></td><td class="nt">DEFAULT 0</td></tr>
+        </tbody>
+      </table>
+      <div class="meta-row"><b>Index</b> <code>(record_id)</code> <code>(captured_at)</code></div>
+    </div>
+
+    <!-- reviews -->
+    <div class="t">
+      <div class="hd"><span class="nm">reviews</span><span class="scope pub">public</span><span class="note">장소별 공개 후기</span></div>
+      <table>
+        <thead><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Note</th></tr></thead>
+        <tbody>
+          <tr><td class="col">id</td><td class="typ">uuid</td><td class="cons"><span class="k pk">PK</span></td><td class="nt"></td></tr>
+          <tr><td class="col">user_id</td><td class="typ">uuid</td><td class="cons"><span class="k fk">FK</span><span class="k nn">NN</span></td><td class="nt">→ auth.users ON DELETE CASCADE</td></tr>
+          <tr><td class="col">place_id</td><td class="typ">uuid</td><td class="cons"><span class="k fk">FK</span><span class="k nn">NN</span></td><td class="nt">→ places ON DELETE CASCADE</td></tr>
+          <tr><td class="col">content</td><td class="typ">text</td><td class="cons"><span class="k nn">NN</span></td><td class="nt"></td></tr>
+          <tr><td class="col">rating</td><td class="typ">int</td><td class="cons">CHECK</td><td class="nt">1..5</td></tr>
+          <tr><td class="col">(user_id, place_id)</td><td class="typ">—</td><td class="cons"><span class="k uq">UQ</span></td><td class="nt">장소당 1개</td></tr>
+        </tbody>
+      </table>
+      <div class="meta-row"><b>Index</b> <code>(place_id)</code></div>
+    </div>
+
+    <!-- review_likes -->
+    <div class="t">
+      <div class="hd"><span class="nm">review_likes</span><span class="scope pub">public</span><span class="note">복합 PK로 중복 차단</span></div>
+      <table>
+        <thead><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Note</th></tr></thead>
+        <tbody>
+          <tr><td class="col">review_id</td><td class="typ">uuid</td><td class="cons"><span class="k pk">PK</span><span class="k fk">FK</span></td><td class="nt">→ reviews ON DELETE CASCADE</td></tr>
+          <tr><td class="col">user_id</td><td class="typ">uuid</td><td class="cons"><span class="k pk">PK</span><span class="k fk">FK</span></td><td class="nt">→ auth.users ON DELETE CASCADE</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="rls">
+    <h2><span class="n">04</span>Row Level Security</h2>
+    <div class="desc">전 테이블 <code class="i">ENABLE ROW LEVEL SECURITY</code>. <code class="i">auth.uid()</code> = 요청자 JWT의 user id.</div>
+    <table class="data">
+      <thead><tr><th>Table</th><th>SELECT (using)</th><th>INSERT / UPDATE / DELETE</th></tr></thead>
+      <tbody>
+        <tr><td class="m">profiles</td><td>true</td><td class="m">auth.uid() = id</td></tr>
+        <tr><td class="m">places</td><td>true</td><td>정책 없음 → secret key(RLS bypass)만</td></tr>
+        <tr><td class="m">records</td><td class="m">auth.uid() = user_id</td><td class="m">FOR ALL · auth.uid() = user_id</td></tr>
+        <tr><td class="m">photos</td><td class="m">auth.uid() = user_id</td><td class="m">FOR ALL · auth.uid() = user_id</td></tr>
+        <tr><td class="m">diaries</td><td class="m">auth.uid() = user_id</td><td class="m">FOR ALL · auth.uid() = user_id</td></tr>
+        <tr><td class="m">reviews</td><td>true</td><td class="m">auth.uid() = user_id</td></tr>
+        <tr><td class="m">review_likes</td><td>true</td><td class="m">auth.uid() = user_id</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="trig">
+    <h2><span class="n">05</span>Functions &amp; Triggers</h2>
+    <pre><span class="c">-- 가입 시 프로필 자동 생성 (RLS 우회 삽입)</span>
+handle_new_user()  SECURITY DEFINER
+  AFTER INSERT ON auth.users
+  → INSERT profiles(id, nickname = split_part(email,'@',1))
+
+<span class="c">-- 수정시각 자동 갱신 (전 테이블)</span>
+set_updated_at()
+  BEFORE UPDATE ON {profiles, places, diaries, records, photos, reviews}
+  → new.updated_at = now()</pre>
+  </section>
+
+  <section id="notes">
+    <h2><span class="n">06</span>Design Notes</h2>
+    <ul class="conv">
+      <li><b>places = 공용 마스터</b> — 장소 메타데이터 중복 제거 + "동일 장소 후기 묶음"(혼행 선순환) 지원.</li>
+      <li><b>photos 1:N 분리</b> — 한 장소 다수 사진 + 사진별 EXIF 보존. records는 코스 단위로 슬림.</li>
+      <li><b>photos.user_id 비정규화</b> — 부모 JOIN 없이 <code class="i">auth.uid() = user_id</code> 단일 조건 RLS.</li>
+      <li><b>records.diary_id 평면 FK</b> — trips 중간 테이블 없이 일기 묶음(MVP 단순화).</li>
+      <li><b>answers jsonb</b> — 동적 질문 유연성, 질문 텍스트까지 보존.</li>
+      <li><b>places writes = server-only</b> — 클라이언트 키엔 write 정책 미부여, secret key로만 캐시 기록.</li>
+      <li><b>Migrations</b> — 단일 init 파일, append-only. 변경 시 <code class="i">supabase migration new</code> → <code class="i">supabase db push</code>.</li>
+    </ul>
+  </section>
+
+  <footer>TravelDiary · DB Schema Reference · text: doc/db-schema.md · source: supabase/migrations/20260626000000_init.sql</footer>
+</div>
+<script>
+  mermaid.initialize({ startOnLoad:true, theme:"dark" });
+</script>
+</body>
+</html>
