@@ -51,11 +51,15 @@
 
 ## Phase 3 — 사진 업로드 + EXIF (핵심 순서 준수)
 
+- [ ] **마이그레이션 추가**: `photos.caption`(사진별 메모) 컬럼 〔CLAUDE §8.6〕
+- [ ] Storage `photos` 버킷 생성(비공개) + RLS
+- [ ] **다중 선택 → EXIF 시각 시간순 정렬 → 사진별 페이지("다음")** 흐름
 - [ ] 클라이언트 EXIF 추출 (좌표·촬영시각) — **압축/리사이즈 전에 먼저**
-- [ ] 좌표·시각 서버 전송 → `records` 저장
-- [ ] Supabase Storage 업로드 → URL을 `records`에 기록
+- [ ] 사진별 `caption`(선택) 입력 · 같은 `place_id` 자동 그룹핑 → 1 record
+- [ ] Supabase Storage 업로드 → `photos.url` 기록 · 좌표·시각 → `photos`
 - [ ] 좌표·시각 기반 **날씨 자동 채움**(선택적, nullable) 〔디로그 장점 흡수〕
 - [ ] (EXIF 없는 사진 fallback: 수동 위치 입력 + 한글 키워드 검색)
+- [ ] AI 감정 질문은 **장소(record) 단위 1회** 〔CLAUDE §8.6〕
 
 ---
 

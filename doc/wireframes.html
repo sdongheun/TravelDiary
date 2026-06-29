@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TravelDiary — 와이어프레임 (모바일, 저충실도)</title>
+<style>
+  :root{
+    --bg:#f4f5f7; --ink:#1c1e22; --mut:#8a8f98; --line:#c9ced6; --line2:#dde1e7;
+    --ph:#e7e9ee; --accent:#3a3d44; --pill:#e1e4ea;
+    --mono:ui-monospace,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo",sans-serif;line-height:1.5;}
+  .page{max-width:1280px;margin:0 auto;padding:30px 22px 80px;}
+  h1{font-size:22px;margin:0 0 4px;}
+  .lead{color:var(--mut);font-size:13.5px;margin:0 0 4px;}
+  .lead code{font-family:var(--mono);background:#fff;border:1px solid var(--line2);padding:1px 6px;border-radius:5px;}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:26px 22px;margin-top:26px;}
+  .cell{display:flex;flex-direction:column;}
+
+  /* phone frame */
+  .phone{width:300px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:26px;
+    box-shadow:0 6px 22px rgba(20,24,34,.08);overflow:hidden;display:flex;flex-direction:column;}
+  .status{height:26px;background:#fff;border-bottom:1px solid var(--line2);position:relative;}
+  .status::before{content:"";position:absolute;left:50%;top:8px;transform:translateX(-50%);
+    width:60px;height:9px;background:var(--ph);border-radius:6px;}
+  .scr{padding:14px;min-height:480px;display:flex;flex-direction:column;gap:10px;}
+  .scr.center{justify-content:center;align-items:stretch;}
+
+  .step{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;
+    background:var(--accent);color:#fff;font-size:12px;font-weight:700;margin-bottom:8px;}
+  .cap{margin-top:12px;font-size:12.5px;color:var(--mut);}
+  .cap b{color:var(--ink);}
+  .cap .tag{display:inline-block;font-family:var(--mono);font-size:10.5px;background:#fff;border:1px solid var(--line2);
+    border-radius:5px;padding:1px 6px;margin:4px 4px 0 0;color:#5a5f68;}
+
+  /* wireframe primitives */
+  .bar{height:14px;border-radius:4px;background:var(--ph);}
+  .bar.sm{width:55%;} .bar.md{width:75%;} .bar.lg{width:100%;}
+  .title{font-size:14px;font-weight:700;}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid var(--line2);}
+  .topbar .t{font-size:13px;font-weight:700;}
+  .topbar .ic{width:22px;height:22px;border-radius:6px;background:var(--ph);}
+  .img{flex:1;min-height:90px;border:1px dashed var(--line);border-radius:8px;background:var(--ph);
+    display:flex;align-items:center;justify-content:center;color:var(--mut);font-size:11px;}
+  .img.tall{min-height:150px;}
+  .row{display:flex;gap:8px;}
+  .thumb{width:54px;height:54px;border:1px dashed var(--line);border-radius:8px;background:var(--ph);flex:none;
+    display:flex;align-items:center;justify-content:center;color:var(--mut);font-size:10px;}
+  .field{border:1px solid var(--line);border-radius:8px;padding:9px 10px;font-size:12px;color:var(--mut);}
+  .btn{border-radius:8px;padding:10px;text-align:center;font-size:12.5px;font-weight:600;}
+  .btn.primary{background:var(--accent);color:#fff;}
+  .btn.ghost{border:1px solid var(--line);color:var(--ink);}
+  .btn.sm{padding:7px 10px;font-size:11.5px;}
+  .pill{display:inline-block;background:var(--pill);border-radius:999px;padding:4px 10px;font-size:11px;color:#4a4f58;}
+  .card{border:1px solid var(--line2);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:7px;}
+  .badge{font-size:10px;font-weight:700;border-radius:5px;padding:2px 7px;}
+  .badge.priv{background:#e6f4ec;color:#2f7d4f;}
+  .badge.pub{background:#fdf0e3;color:#9a5a1e;}
+  .fab{position:relative;}
+  .fab .b{position:absolute;right:0;bottom:0;width:46px;height:46px;border-radius:50%;background:var(--accent);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:24px;line-height:1;}
+  .seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;}
+  .seg div{flex:1;text-align:center;font-size:11.5px;padding:8px 0;color:var(--mut);}
+  .seg div.on{background:var(--accent);color:#fff;}
+  .q{font-size:12px;color:var(--ink);}
+  .muted{color:var(--mut);font-size:11.5px;}
+  .stars{letter-spacing:2px;color:#b7bcc4;}
+  .link{font-size:11.5px;color:#4a6cf7;}
+  hr.d{border:0;border-top:1px dashed var(--line2);margin:2px 0;}
+
+  /* calendar */
+  .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+  .cal .dow{font-size:9px;color:var(--mut);text-align:center;padding-bottom:2px;}
+  .cal .d{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-size:10px;color:var(--ink);border-radius:6px;}
+  .cal .d.dim{color:var(--line);}
+  .cal .d.on{background:var(--accent);color:#fff;font-weight:700;}
+  .cal .d .dot{width:4px;height:4px;border-radius:50%;background:#4a6cf7;margin-top:2px;}
+  .cal .d.on .dot{background:#fff;}
+  /* map with image markers */
+  .map{position:relative;min-height:118px;border:1px dashed var(--line);border-radius:8px;background:var(--ph);overflow:hidden;}
+  .map .lbl{position:absolute;top:6px;left:8px;font-size:10px;color:var(--mut);}
+  .mk{position:absolute;width:30px;height:30px;border-radius:8px;border:2px solid #fff;background:#cfd3da;
+    box-shadow:0 1px 4px rgba(0,0,0,.22);display:flex;align-items:center;justify-content:center;font-size:8px;color:#5a5f68;}
+  .mk::after{content:"";position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);
+    border:4px solid transparent;border-top-color:#fff;}
+  /* time-ordered list */
+  .tlrow{display:flex;gap:8px;align-items:center;}
+  .tlrow .time{font-family:var(--mono);font-size:10px;color:var(--mut);width:34px;flex:none;}
+  /* 상하 분할 상세 (상단 지도 / 하단 스크롤 리스트) */
+  .scr.split{padding:0;gap:0;height:482px;min-height:482px;display:flex;flex-direction:column;}
+  .maphalf{position:relative;height:212px;flex:none;background:var(--ph);border-bottom:1px solid var(--line);overflow:hidden;}
+  .maphalf .maplbl{position:absolute;bottom:6px;left:8px;font-size:10px;color:var(--mut);}
+  .backchip{position:absolute;top:8px;left:8px;z-index:2;background:#fff;border:1px solid var(--line2);
+    border-radius:999px;padding:3px 10px;font-size:11px;}
+  .listhalf{flex:1;min-height:0;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:11px;}
+  .listhalf .hd{display:flex;align-items:center;justify-content:space-between;}
+  .ctabar{flex:none;padding:9px 12px;border-top:1px solid var(--line);background:#fff;display:flex;flex-direction:column;gap:3px;}
+  /* 미방문 관광지 추천 ? 핀 + 토글 */
+  .qmk{position:absolute;width:24px;height:24px;border-radius:50%;border:2px dashed #9aa0aa;
+    background:rgba(255,255,255,.78);display:flex;align-items:center;justify-content:center;
+    font-size:12px;font-weight:700;color:#7a8089;}
+  .tgl{position:absolute;top:8px;right:8px;z-index:2;background:#fff;border:1px solid var(--line2);
+    border-radius:999px;padding:3px 8px;font-size:10px;display:flex;align-items:center;gap:5px;color:#4a4f58;}
+  .tgl .sw{width:20px;height:12px;border-radius:999px;background:var(--accent);position:relative;flex:none;}
+  .tgl .sw::after{content:"";position:absolute;top:1.5px;right:1.5px;width:9px;height:9px;border-radius:50%;background:#fff;}
+  .maplegend{position:absolute;bottom:6px;left:8px;right:8px;display:flex;gap:10px;font-size:9px;color:var(--mut);flex-wrap:wrap;}
+  .maplegend i{font-style:normal;}
+  /* 스크롤 동기화: 포커스 마커 / 흐린 마커 */
+  .mk.focus{width:46px;height:46px;border-width:3px;font-size:9px;z-index:3;
+    box-shadow:0 0 0 5px rgba(58,61,68,.16),0 2px 7px rgba(0,0,0,.3);}
+  .mk.faint{width:24px;height:24px;opacity:.42;font-size:7px;}
+  /* 큰 이미지 피드 카드 */
+  .feedcard{display:flex;flex-direction:column;gap:6px;padding:8px;border-radius:12px;}
+  .feedcard.viewing{outline:2px solid var(--accent);background:#fff;}
+  .bigimg{width:100%;height:128px;border:1px dashed var(--line);border-radius:10px;background:var(--ph);
+    display:flex;align-items:center;justify-content:center;color:var(--mut);font-size:11px;}
+  .feedcard .meta{display:flex;align-items:center;justify-content:space-between;}
+  .nowtag{font-size:9.5px;color:#fff;background:var(--accent);border-radius:5px;padding:1px 7px;font-weight:600;}
+  /* 페이지 분할 진행 표시 */
+  .prog{font-family:var(--mono);font-size:11px;color:var(--mut);}
+  .dots{display:flex;gap:6px;justify-content:center;}
+  .dots .o{width:7px;height:7px;border-radius:50%;background:var(--line);}
+  .dots .o.on{background:var(--accent);}
+  .chk{position:relative;}
+  .chk::after{content:"✓";position:absolute;top:-4px;right:-4px;width:15px;height:15px;border-radius:50%;
+    background:var(--accent);color:#fff;font-size:9px;display:flex;align-items:center;justify-content:center;}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>TravelDiary — 와이어프레임</h1>
+  <p class="lead">모바일 우선 · 저충실도 · <b>화면 흐름</b> 중심. 세부 UX는 팀원과 추가. Figma로 가져가려면 <code>html.to.design</code> 플러그인으로 import.</p>
+  <p class="lead">흐름: ① 로그인 → ② 홈(달력) → ②b 날짜상세 → ③ 사진선택 → ③b 사진별 메모 → ④ 장소확정 → ⑤ AI질문·정리 → ⑥ 일기생성 → ⑦ 일기보기 · ⑧ 후기게시판 → ⑨ 후기작성</p>
+
+  <div class="grid">
+
+    <!-- 1 로그인 -->
+    <div class="cell">
+      <span class="step">1</span>
+      <div class="phone"><div class="status"></div>
+        <div class="scr center">
+          <div class="title" style="text-align:center;margin-bottom:6px;">TravelDiary</div>
+          <p class="muted" style="text-align:center;margin:0 0 10px;">혼자 여행하는 사람을 위한 AI 일기</p>
+          <div class="field">이메일</div>
+          <div class="field">비밀번호</div>
+          <div class="btn primary">로그인</div>
+          <div class="btn ghost">회원가입</div>
+        </div>
+      </div>
+      <div class="cap"><b>로그인 / 회원가입</b> — 이메일+비번(소셜 후순위). <span class="tag">Phase 1 ✅</span><span class="tag">auth</span></div>
+    </div>
+
+    <!-- 2 홈: 달력 -->
+    <div class="cell">
+      <span class="step">2</span>
+      <div class="phone"><div class="status"></div>
+        <div class="scr">
+          <div class="topbar"><span class="t">내 여행 기록</span><span class="muted">‹ 2026·6월 ›</span></div>
+          <div class="cal">
+            <div class="dow">일</div><div class="dow">월</div><div class="dow">화</div><div class="dow">수</div><div class="dow">목</div><div class="dow">금</div><div class="dow">토</div>
+            <div class="d dim">31</div><div class="d">1</div><div class="d">2</div><div class="d">3</div><div class="d">4</div><div class="d">5</div><div class="d">6</div>
+            <div class="d">7</div><div class="d">8</div><div class="d">9</div><div class="d">10<span class="dot"></span></div><div class="d">11</div><div class="d">12</div><div class="d">13</div>
+            <div class="d">14<span class="dot"></span></div><div class="d">15</div><div class="d">16</div><div class="d">17</div><div class="d">18</div><div class="d">19</div><div class="d on">20<span class="dot"></span></div>
+            <div class="d">21</div><div class="d">22</div><div class="d">23</div><div class="d">24</div><div class="d">25</div><div class="d">26</div><div class="d">27</div>
+            <div class="d">28</div><div class="d">29</div><div class="d">30</div><div class="d dim">1</div><div class="d dim">2</div><div class="d dim">3</div><div class="d dim">4</div>
+          </div>
+          <hr class="d" />
+          <span class="muted">날짜를 선택하면 그날 상세 페이지로 이동 →</span>
+          <div class="card"><span class="muted">● 표시 = 기록 있는 날 (6/10, 14, 20)</span></div>
+          <div class="fab" style="flex:1;min-height:60px;"><div class="b">+</div></div>
+        </div>
+      </div>
+      <div class="cap"><b>홈 — 달력</b> 기록 있는 날 ● 표시. 날짜 선택 → 상세 페이지(2b). <b>＋</b>로 새 기록. <span class="tag">records.captured_at</span></div>
+    </div>
+
+    <!-- 2b 날짜 상세: 상단 지도 / 하단 시간순 스크롤 -->
+    <div class="cell">
+      <span class="step" style="width:auto;padding:0 8px;border-radius:12px;">2b</span>
+      <div class="phone"><div class="status"></div>
+        <div class="scr split">
+          <div class="maphalf">
+            <span class="backchip">‹ 6/20 (월)</span>
+            <span class="tgl">주변 관광지 <span class="sw"></span></span>
+            <!-- 다녀온 곳: 흐린 마커 + 현재 보는 위치 포커스(줌인) -->
+            <span class="mk faint" style="left:218px;top:54px;">IMG</span>
+            <span class="mk faint" style="left:54px;top:158px;">IMG</span>
+            <span class="mk focus" style="left:120px;top:92px;">IMG</span>
+            <!-- 미방문 추천 관광지: ? 핀 (토글 ON) -->
+            <span class="qmk" style="left:190px;top:150px;">?</span>
+            <span class="qmk" style="left:158px;top:52px;">?</span>
+            <span class="maplegend"><i>🔵 현재 위치(스크롤 줌인·포커스)</i><i>📷 다녀온 곳</i><i>? 추천</i></span>
+          </div>
+          <div class="listhalf">
+            <div class="feedcard viewing">
+              <div class="bigimg">IMG (크게)</div>
+              <div class="meta"><span class="muted">09:20 · 해운대해수욕장</span><span class="nowtag">보는 중</span></div>
+              <div class="bar lg"></div><div class="bar md"></div>
+            </div>
+            <div class="feedcard">
+              <div class="bigimg">IMG</div>
+              <div class="meta"><span class="muted">13:05 · 자갈치시장</span></div>
+              <div class="bar lg"></div><div class="bar sm"></div>
+            </div>
+            <div class="feedcard">
+              <div class="bigimg">IMG</div>
+              <div class="meta"><span class="muted">17:40 · 감천문화마을</span></div>
+              <div class="bar md"></div>
+            </div>
+          </div>
+          <div class="ctabar">
+            <div class="btn primary">이 날 일기 만들기</div>
+            <span class="muted" style="font-size:9px;text-align:center;">하루 마무리 후 직접 생성 · 일기 있으면 “일기 보기”로</span>
+          </div>
+        </div>
+      </div>
+      <div class="cap"><b>날짜 상세 (새 페이지)</b> 하단=큰 이미지+장소+메모 피드 <b>스크롤</b> → <b>지도 줌인·마커 포커스</b>(동기화). 하단 고정 <b>"이 날 일기 만들기" CTA</b>(하루 마무리 후 직접 생성, 일기 있으면 보기/수정). 리마인더 푸시의 착지점. <span class="tag">scroll-synced map</span><span class="tag">일기 생성 진입</span></div>
+    </div>
+
+    <!-- 3 사진 다중 선택 -->
+    <div class="cell">
+      <span class="step">3</span>
+      <div class="phone"><div class="status"></div>
+        <div class="scr">
+          <div class="topbar"><span class="t">사진 선택</span><span class="muted">취소</span></div>
+          <div class="row" style="flex-wrap:wrap;gap:7px;">
+            <span class="thumb chk">IMG</span><span class="thumb chk">IMG</span><span class="thumb chk">IMG</span>
+            <span class="thumb chk">IMG</span><span class="thumb">IMG</span><span class="thumb">IMG</span>
+          </div>
+          <div class="card"><span class="muted">EXIF 촬영시각 인식 → <b>시간순 정렬</b></span><span class="muted">선택 4장 · 09:20 ~ 17:40</span></div>
+          <div class="btn primary">작성 시작 (1 / 4)</div>
+          <span class="muted" style="text-align:center;">EXIF 없는 사진은 위치 직접 입력</span>
+        </div>
+      </div>
+      <div class="cap"><b>사진 다중 선택 + EXIF</b> 압축 전 EXIF 먼저 → 촬영시각으로 <b>시간순 정렬</b>. <span class="tag">Phase 3</span><span class="tag">photos.captured_at</span></div>
+    </div>
+
+    <!-- 3b 사진별 작성 (페이지 분할) -->
+    <div class="cell">
+      <span class="step" style="width:auto;padding:0 8px;border-radius:12px;">3b</span>
+      <div class="phone"><div class="status"></div>
+        <div class="scr">
+          <div class="topbar"><span class="t">사진별 작성</span><span class="prog">2 / 4</span></div>
+          <div class="img tall" style="min-height:165px;">IMG (크게)</div>
+          <div class="row" style="align-items:center;justify-content:space-between;">
+            <span class="muted">🕒 13:05</span><span class="link">📍 자갈치시장 · 수정</span>
+          </div>
+          <div class="field" style="min-height:70px;">이 사진 메모 (선택)…</div>
+          <span class="muted" style="font-size:10px;">같은 장소 사진은 자동으로 묶여요</span>
+          <div class="dots"><span class="o on"></span><span class="o on"></span><span class="o"></span><span class="o"></span></div>
+          <div class="row"><div class="btn ghost sm" style="flex:1;">이전</div><div class="btn primary sm" style="flex:2;">다음</div></div>
+        </div>
+      </div>
+      <div class="cap"><b>사진별 작성 (페이지 분할)</b> 시간순 한 장씩 — 큰 사진 + 장소(자동 제안·탭 수정) + 메모(선택) → <b>다음</b>. 같은 장소 사진은 <b>place_id로 자동 묶음</b>. <span class="tag">photos.caption</span><span class="tag">자동 그룹핑</span></div>
+    </div>
+
+    <!-- 4 장소 확정 -->
+    <div class="cell">
+      <span class="step">4</span>
+      <div class="phone"><div class="status"></div>
+        <div class="scr">
+          <div class="topbar"><span class="t">이 장소 맞나요?</span><span class="muted">‹</span></div>
+          <div class="img" style="min-height:110px;">지도 (현재 좌표)</div>
+          <div class="card"><div class="row" style="align-items:center;justify-content:space-between;"><div><div class="bar sm" style="margin-bottom:5px;"></div><span class="muted">해운대해수욕장 · 120m</span></div><span class="badge pub">선택</span></div></div>
+          <div class="card"><span class="muted">동백섬 · 340m</span></div>
+          <div class="field">🔎 한글로 장소 검색…</div>
+          <div class="btn primary">이 장소로 확정</div>
+        </div>
+      </div>
+      <div class="cap"><b>장소 제안/확정 (TourAPI)</b> 3b에서 "장소 수정" 탭 시 진입 · 후보 제안 + 한글 검색 fallback. <span class="tag">Phase 4</span><span class="tag">places</span></div>
+    </div>
+
+    <!-- 5 기록 작성 -->
+    <div class="cell">
+      <span class="step">5</span>
+      <div class="phone"><div class="status"></div>
+        <div class="scr">
+          <div class="topbar"><span class="t">해운대해수욕장</span><span class="muted">저장</span></div>
+          <div class="row"><span class="thumb">IMG</span><span class="thumb">IMG</span><span class="thumb">IMG</span></div>
+          <div class="card"><span class="muted">같은 장소 사진 3장 자동 묶음 · caption 종합</span></div>
+          <div class="card"><span class="muted">AI 질문 <b>(장소별 1회)</b> <span class="link">· 건너뛰기</span></span><div class="q">“혼자 본 이 바다는 어땠나요?”</div><div class="field">답변…</div></div>
+          <div class="row" style="align-items:center;justify-content:space-between;"><span class="muted">평점</span><span class="stars">★★★★★</span></div>
+          <div class="btn primary">기록 저장</div>
+        </div>
+      </div>
+      <div class="cap"><b>장소(코스) 정리</b> 같은 장소 사진 자동 묶음 · caption 종합 + <b>AI 질문 장소별 1회</b> + 평점 → 1 record. <b>저장 시 자동 일기 생성 X → 날짜 상세(2b)로 복귀.</b> <span class="tag">Phase 5</span><span class="tag">records.answers</span></div>
+    </div>
+
+    <!-- 6 일기 생성 -->
+    <div class="cell">
+      <span class="step">6</span>
+      <div class="phone"><div class="status"></div>
+        <div class="scr">
+          <div class="topbar"><span class="t">일기 만들기</span><span class="muted">‹</span></div>
+          <span class="muted">6/20 · 묶을 기록 3개</span>
+          <div class="card"><span class="muted">해운대 · 감천 · 자갈치</span><div class="bar lg"></div></div>
+          <span class="muted">문체 선택</span>
+          <div class="seg"><div class="on">담백</div><div>감성</div><div>유머</div></div>
+          <div class="btn primary">AI로 일기 초안 생성</div>
+          <div class="img">생성된 본문 미리보기 (편집 가능)</div>
+        </div>
+      </div>
+      <div class="cap"><b>일기 생성</b> 2b "이 날 일기 만들기" CTA로 진입 → 그날 기록 묶음 → 문체 선택 → AI 초안 → 편집. <span class="tag">Phase 6</span><span class="tag">diaries.tone/body</span></div>
+    </div>
+
+    <!-- 7 일기 보기 -->
+    <div class="cell">
+      <span class="step">7</span>
+      <div class="phone"><div class="status"></div>
+        <div class="scr">
+          <div class="topbar"><span class="t">6월 20일 일기</span><span class="badge priv">비공개</span></div>
+          <div class="img" style="min-height:80px;">대표 사진</div>
+          <div class="bar lg"></div><div class="bar lg"></div><div class="bar md"></div>
+          <div class="bar lg"></div><div class="bar sm"></div>
+          <hr class="d" />
+          <span class="muted">방문 장소: 해운대 · 감천 · 자갈치</span>
+          <div class="row"><div class="btn ghost sm" style="flex:1;">수정</div><div class="btn ghost sm" style="flex:1;">지도 보기</div></div>
+        </div>
+      </div>
+      <div class="cap"><b>일기 보기</b> 늘 비공개. 본문 + 방문 장소 + 지도. <span class="tag">diaries</span><span class="tag">RLS 본인만</span></div>
+    </div>
+
+    <!-- 8 후기 게시판 -->
+    <div class="cell">
+      <span class="step">8</span>
+      <div class="phone"><div class="status"></div>
+        <div class="scr">
+          <div class="topbar"><span class="t">해운대해수욕장</span><span class="badge pub">공개</span></div>
+          <div class="img" style="min-height:80px;">장소 공식 정보 (TourAPI)</div>
+          <span class="muted">혼행자 후기 12</span>
+          <div class="card"><div class="row" style="justify-content:space-between;"><span class="muted">닉네임 · ★★★★☆</span><span class="muted">♡ 8</span></div><div class="bar md"></div></div>
+          <div class="card"><div class="row" style="justify-content:space-between;"><span class="muted">닉네임 · ★★★★★</span><span class="muted">♡ 3</span></div><div class="bar sm"></div></div>
+          <div class="btn primary">후기 쓰기</div>
+        </div>
+      </div>
+      <div class="cap"><b>장소 후기 게시판</b> 공개. 같은 장소 혼행 후기 묶음 + 공식정보. <span class="tag">reviews</span><span class="tag">review_likes</span></div>
+    </div>
+
+    <!-- 9 후기 작성 -->
+    <div class="cell">
+      <span class="step">9</span>
+      <div class="phone"><div class="status"></div>
+        <div class="scr">
+          <div class="topbar"><span class="t">후기 쓰기</span><span class="muted">취소</span></div>
+          <span class="muted">해운대해수욕장</span>
+          <div class="row" style="align-items:center;justify-content:space-between;"><span class="muted">평점</span><span class="stars">★★★★★</span></div>
+          <div class="field" style="min-height:90px;">간단 후기…</div>
+          <span class="muted">※ 일기(비공개)와 별개로 공개됩니다</span>
+          <div class="btn primary">공개 후기 등록</div>
+        </div>
+      </div>
+      <div class="cap"><b>후기 작성</b> 장소당 1개(평점+글). 일기와 분리된 공개 행동. <span class="tag">reviews UQ(user,place)</span></div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>
