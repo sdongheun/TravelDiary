@@ -49,12 +49,12 @@
 
 ---
 
-## Phase 3 — 사진 업로드 + EXIF (핵심 순서 준수)
+## Phase 3 — 사진 업로드 + EXIF (핵심 순서 준수) 🔄
 
-- [ ] **마이그레이션 추가**: `photos.caption`(사진별 메모) 컬럼 〔CLAUDE §8.6〕
-- [ ] Storage `photos` 버킷 생성(비공개) + RLS
-- [ ] **다중 선택 → EXIF 시각 시간순 정렬 → 사진별 페이지("다음")** 흐름
-- [ ] 클라이언트 EXIF 추출 (좌표·촬영시각) — **압축/리사이즈 전에 먼저**
+- [x] **마이그레이션 0002 작성**: `photos.caption` + Storage `photos` 버킷(비공개) + storage RLS (적용은 `supabase db push` 대기)
+- [x] 클라이언트 EXIF 추출 유틸 `lib/exif.ts` (`extractExif`/`sortByCapturedAt`) — 압축 전 호출 전제
+- [ ] **다중 선택 → EXIF 시각 시간순 정렬 → 사진별 페이지("다음")** 흐름 (UI)
+- [ ] 업로드 파이프라인: Storage(`{user_id}/...`) 업로드 → `photos` 행 기록
 - [ ] 사진별 `caption`(선택) 입력 · 같은 `place_id` 자동 그룹핑 → 1 record
 - [ ] Supabase Storage 업로드 → `photos.url` 기록 · 좌표·시각 → `photos`
 - [ ] 좌표·시각 기반 **날씨 자동 채움**(선택적, nullable) 〔디로그 장점 흡수〕
@@ -68,10 +68,11 @@
 - [x] 서버 전용 TourAPI 클라이언트 (`lib/tourapi/client.ts`) — `KorService2`, mapX=경도/mapY=위도, `server-only`
 - [x] `locationBasedList2` 좌표 주변 조회 함수 (`detailCommon2`/`detailImage2`/`searchKeyword2` 포함)
 - [x] 방어적 파싱 (응답 key 누락·빈 문자열 대비)
-- [ ] "이 장소 OO 맞나요?" 제안 UI → 확정/수정
-- [ ] 확정 장소를 `places`에 캐시 + `records`에 연결
-- [ ] 좌표 → 장소 제안을 호출하는 API Route 연결
-- [ ] **한글 키워드 장소 검색을 1급 기능으로** 〔디로그 약점 §4, `searchKeyword2` 활용 — 자동제안 실패 시 필수 fallback〕
+- [x] API Route `GET /api/places/nearby` (좌표 주변) — 라이브 검증 ✅ (경복궁 20건)
+- [x] API Route `GET /api/places/search?q=` (한글 키워드 fallback) — 라이브 검증 ✅ (경복궁 12건) 〔디로그 약점 §4〕
+- [x] API Route `POST /api/places/upsert` (확정 장소 → places 캐시, 서버 secret) — 빌드 통과(적용 후 검증)
+- [ ] "이 장소 OO 맞나요?" 제안 UI → 확정/수정 (캡처 흐름에 통합)
+- [ ] 확정 장소를 `records`에 연결 + place_id 자동 그룹핑
 
 ---
 
