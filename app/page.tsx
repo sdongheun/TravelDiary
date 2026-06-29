@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { signout } from "./login/actions";
@@ -26,9 +27,12 @@ export default async function Home() {
           {profile?.nickname ?? "여행자"}님, 환영합니다 👋
         </h1>
         <p className="mt-2 text-sm text-neutral-500">{user.email}</p>
-        <p className="mt-6 text-sm text-neutral-400">
-          (다음 단계: 사진 업로드 + EXIF → 장소 기록)
-        </p>
+        <Link
+          href="/capture"
+          className="mt-6 inline-block rounded-lg bg-neutral-900 px-5 py-2.5 text-sm font-medium text-white"
+        >
+          + 기록 추가 (사진)
+        </Link>
 
         <form action={signout} className="mt-8">
           <button className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-50">

@@ -1,15 +1,16 @@
-import exifr from "exifr";
+import ExifReader from "exifreader";
 
 /**
  * 사진 EXIF에서 좌표·촬영시각 추출 (클라이언트).
  *
- * ⚠️ 반드시 압축/리사이즈 "전"에 원본 File로 호출할 것 — 가공 시 EXIF 소실(CLAUDE §8).
- * EXIF가 없으면 각 필드는 null. 호출부에서 fallback(수동 위치/현재시각) 처리.
+ * exifreader 사용 — JPEG뿐 아니라 **HEIC/HEIF**(아이폰 기본)도 안정적으로 읽음.
+ * ⚠️ 압축/리사이즈 "전"의 원본으로 호출할 것 — 가공 시 EXIF 소실(CLAUDE §8).
+ * EXIF가 없으면 각 필드 null → 호출부에서 fallback(수동 위치/시각).
  */
 export interface PhotoExif {
   lat: number | null; // 위도
   lng: number | null; // 경도
-  capturedAt: string | null; // ISO 문자열 (촬영시각)
+  capturedAt: string | null; // "YYYY-MM-DDTHH:MM:SS" (로컬, 타임존 없음)
 }
 
 export async function extractExif(file: File): Promise<PhotoExif> {
@@ -18,24 +19,25 @@ export async function extractExif(file: File): Promise<PhotoExif> {
   let capturedAt: string | null = null;
 
   try {
-    // 좌표
-    const gps = await exifr.gps(file).catch(() => null);
-    if (gps && Number.isFinite(gps.latitude) && Number.isFinite(gps.longitude)) {
-      lat = gps.latitude;
-      lng = gps.longitude;
+    const tags = await ExifReader.load(file, { expanded: true });
+
+    const glat = tags.gps?.Latitude;
+    const glng = tags.gps?.Longitude;
+    if (typeof glat === "number" && typeof glng === "number") {
+      lat = glat;
+      lng = glng;
     }
 
-    // 촬영시각 (DateTimeOriginal 우선)
-    const parsed = await exifr
-      .parse(file, ["DateTimeOriginal", "CreateDate", "ModifyDate"])
-      .catch(() => null);
-    const dt: Date | undefined =
-      parsed?.DateTimeOriginal ?? parsed?.CreateDate ?? parsed?.ModifyDate;
-    if (dt instanceof Date && !Number.isNaN(dt.getTime())) {
-      capturedAt = dt.toISOString();
+    // EXIF DateTime은 "YYYY:MM:DD HH:MM:SS" 형식 (타임존 없음)
+    const dt =
+      tags.exif?.DateTimeOriginal?.description ??
+      tags.exif?.DateTimeDigitized?.description;
+    if (typeof dt === "string") {
+      const m = dt.match(/^(\d{4}):(\d{2}):(\d{2})\s+(\d{2}):(\d{2}):(\d{2})/);
+      if (m) capturedAt = `${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:${m[6]}`;
     }
   } catch {
-    // 파싱 실패해도 throw 하지 않음 — 호출부에서 null 처리
+    // 파싱 실패해도 throw 하지 않음 — null 반환
   }
 
   return { lat, lng, capturedAt };

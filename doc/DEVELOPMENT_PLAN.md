@@ -51,15 +51,18 @@
 
 ## Phase 3 — 사진 업로드 + EXIF (핵심 순서 준수) 🔄
 
-- [x] **마이그레이션 0002 작성**: `photos.caption` + Storage `photos` 버킷(비공개) + storage RLS (적용은 `supabase db push` 대기)
-- [x] 클라이언트 EXIF 추출 유틸 `lib/exif.ts` (`extractExif`/`sortByCapturedAt`) — 압축 전 호출 전제
-- [ ] **다중 선택 → EXIF 시각 시간순 정렬 → 사진별 페이지("다음")** 흐름 (UI)
-- [ ] 업로드 파이프라인: Storage(`{user_id}/...`) 업로드 → `photos` 행 기록
-- [ ] 사진별 `caption`(선택) 입력 · 같은 `place_id` 자동 그룹핑 → 1 record
-- [ ] Supabase Storage 업로드 → `photos.url` 기록 · 좌표·시각 → `photos`
-- [ ] 좌표·시각 기반 **날씨 자동 채움**(선택적, nullable) 〔디로그 장점 흡수〕
-- [ ] (EXIF 없는 사진 fallback: 수동 위치 입력 + 한글 키워드 검색)
-- [ ] AI 감정 질문은 **장소(record) 단위 1회** 〔CLAUDE §8.6〕
+- [x] **마이그레이션 0002 적용·검증**: `photos.caption` ✅ + 비공개 `photos` 버킷 ✅ + storage RLS
+- [x] 클라이언트 EXIF 추출 `lib/exif.ts` — **exifreader**(HEIC/HEIF 지원). 실파일 검증 ✅(GPS·촬영시각)
+- [x] **HEIC→JPEG 변환** `lib/image.ts`(heic2any) — 브라우저 표시·업로드용(EXIF는 원본에서 먼저 추출)
+- [x] **캡처 UI** `app/capture` — 다중 선택 → 시간순 → 사진별 페이지(메모+장소 제안/검색) → 완료
+- [x] 업로드 파이프라인 `lib/capture.ts` — Storage(`{user}/{record}/...`) 업로드 → `photos` 행 + record 생성
+- [x] 사진별 `caption` 입력 · 같은 `place_id` **자동 그룹핑** → 1 record
+- [x] 홈에 "기록 추가" 진입 (`app/page.tsx` → `/capture`)
+- [ ] **브라우저 E2E 테스트** — 로그인 → 기록 추가 → 사진 선택 → 저장 (사용자 확인 필요)
+- [ ] 좌표·시각 기반 **날씨 자동 채움**(선택적) 〔후순위〕
+- [ ] **이미지 압축 vs 원본** → 구현 완료 후 최적화로 재검토 〔`doc/최적화_백로그.md` §1〕 (현행: 원본/변환본 저장)
+- [ ] EXIF 없는 사진: 한글 키워드 검색 ✅ / 수동 위치 텍스트(`manual_location`)는 추후
+- [ ] AI 감정 질문 **장소 단위 1회** → Phase 5
 
 ---
 
